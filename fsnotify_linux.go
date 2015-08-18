@@ -64,7 +64,7 @@ type FileEvent struct {
 
 // IsCreate reports whether the FileEvent was triggered by a creation
 func (e *FileEvent) IsCreate() bool {
-	return (e.mask&sys_IN_CREATE) == sys_IN_CREATE || (e.mask&sys_IN_MOVED_TO) == sys_IN_MOVED_TO
+	return (e.mask & sys_IN_CREATE) == sys_IN_CREATE
 }
 
 // IsDelete reports whether the FileEvent was triggered by a delete
@@ -75,6 +75,10 @@ func (e *FileEvent) IsDelete() bool {
 // IsModify reports whether the FileEvent was triggered by a file modification or attribute change
 func (e *FileEvent) IsModify() bool {
 	return ((e.mask&sys_IN_MODIFY) == sys_IN_MODIFY || (e.mask&sys_IN_ATTRIB) == sys_IN_ATTRIB)
+}
+
+func (e *FileEvent) IsCloseWrite() bool {
+	return (e.mask & sys_IN_CLOSE_WRITE) == sys_IN_CLOSE_WRITE
 }
 
 // IsRename reports whether the FileEvent was triggered by a change name

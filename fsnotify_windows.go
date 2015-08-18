@@ -77,6 +77,10 @@ func (e *FileEvent) IsAttrib() bool {
 	return (e.mask & sys_FS_ATTRIB) == sys_FS_ATTRIB
 }
 
+func (e *FileEvent) IsCloseWrite() bool {
+	return false // TODO: Not Implement
+}
+
 const (
 	opAddWatch = iota
 	opRemoveWatch
