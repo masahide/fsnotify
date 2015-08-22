@@ -1,8 +1,8 @@
+// +build freebsd openbsd netbsd darwin
+
 // Copyright 2010 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-
-// +build freebsd openbsd netbsd darwin
 
 package fsnotify
 
@@ -18,13 +18,14 @@ import (
 
 const (
 	// Flags (from <sys/event.h>)
-	sys_NOTE_DELETE = 0x0001 /* vnode was removed */
-	sys_NOTE_WRITE  = 0x0002 /* data contents changed */
-	sys_NOTE_EXTEND = 0x0004 /* size increased */
-	sys_NOTE_ATTRIB = 0x0008 /* attributes changed */
-	sys_NOTE_LINK   = 0x0010 /* link count changed */
-	sys_NOTE_RENAME = 0x0020 /* vnode was renamed */
-	sys_NOTE_REVOKE = 0x0040 /* vnode access was revoked */
+	sys_NOTE_DELETE   = 0x0001 /* vnode was removed */
+	sys_NOTE_WRITE    = 0x0002 /* data contents changed */
+	sys_NOTE_EXTEND   = 0x0004 /* size increased */
+	sys_NOTE_ATTRIB   = 0x0008 /* attributes changed */
+	sys_NOTE_LINK     = 0x0010 /* link count changed */
+	sys_NOTE_RENAME   = 0x0020 /* vnode was renamed */
+	sys_NOTE_REVOKE   = 0x0040 /* vnode access was revoked */
+	sys_NOTE_TRUNCATE = 0x0080 /* vnode was truncated */
 
 	// Watch all events
 	sys_NOTE_ALLEVENTS = sys_NOTE_DELETE | sys_NOTE_WRITE | sys_NOTE_ATTRIB | sys_NOTE_RENAME
@@ -48,6 +49,10 @@ func (e *FileEvent) IsDelete() bool { return (e.mask & sys_NOTE_DELETE) == sys_N
 // IsModify reports whether the FileEvent was triggered by a file modification
 func (e *FileEvent) IsModify() bool {
 	return ((e.mask&sys_NOTE_WRITE) == sys_NOTE_WRITE || (e.mask&sys_NOTE_ATTRIB) == sys_NOTE_ATTRIB)
+}
+
+func (e *FileEvent) IsCloseWrite() bool {
+	return false
 }
 
 // IsRename reports whether the FileEvent was triggered by a change name
