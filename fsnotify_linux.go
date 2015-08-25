@@ -64,7 +64,7 @@ type FileEvent struct {
 
 // IsCreate reports whether the FileEvent was triggered by a creation
 func (e *FileEvent) IsCreate() bool {
-	return (e.mask & sys_IN_CREATE) == sys_IN_CREATE
+	return (e.mask & (sys_IN_CREATE | sys_IN_MOVED_TO)) != 0
 }
 
 // IsDelete reports whether the FileEvent was triggered by a delete
