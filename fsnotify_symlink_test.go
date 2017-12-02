@@ -7,6 +7,7 @@
 package fsnotify
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -70,5 +71,6 @@ func TestFsnotifyFakeSymlink(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 }

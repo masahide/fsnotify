@@ -5,7 +5,10 @@
 // Package fsnotify provides a platform-independent interface for file system notifications.
 package fsnotify
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 const (
 	FSN_CREATE      = 1
@@ -18,7 +21,7 @@ const (
 )
 
 // Purge events from interal chan to external chan if passes filter
-func (w *Watcher) purgeEvents() {
+func (w *Watcher) purgeEvents(ctx context.Context) {
 	for ev := range w.internalEvent {
 		sendEvent := false
 		w.fsnmut.Lock()
@@ -46,7 +49,10 @@ func (w *Watcher) purgeEvents() {
 		}
 
 		if sendEvent {
-			w.Event <- ev
+			select {
+			case <-ctx.Done():
+			case w.Event <- ev:
+			}
 		}
 
 		// If there's no file, then no more events for user

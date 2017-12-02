@@ -5,13 +5,15 @@
 package fsnotify_test
 
 import (
+	"context"
 	"log"
 
-	"github.com/go-fsnotify/fsnotify"
+	"github.com/masahide/fsnotify"
 )
 
 func ExampleNewWatcher() {
-	watcher, err := fsnotify.NewWatcher()
+	ctx := context.Background()
+	watcher, err := fsnotify.NewWatcher(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}

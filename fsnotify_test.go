@@ -5,6 +5,7 @@
 package fsnotify
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -43,7 +44,8 @@ func tempMkdir(t *testing.T) string {
 
 // newWatcher initializes an fsnotify Watcher instance.
 func newWatcher(t *testing.T) *Watcher {
-	watcher, err := NewWatcher()
+	ctx := context.Background()
+	watcher, err := NewWatcher(ctx)
 	if err != nil {
 		t.Fatalf("NewWatcher() failed: %s", err)
 	}
@@ -165,7 +167,8 @@ func TestFsnotifyMultipleOperations(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 	t.Log("waiting for the event channel to become closed...")
 	select {
 	case <-done:
@@ -291,7 +294,8 @@ func TestFsnotifyMultipleCreates(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 	t.Log("waiting for the event channel to become closed...")
 	select {
 	case <-done:
@@ -393,7 +397,8 @@ func TestFsnotifyDirOnly(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 	t.Log("waiting for the event channel to become closed...")
 	select {
 	case <-done:
@@ -404,8 +409,9 @@ func TestFsnotifyDirOnly(t *testing.T) {
 }
 
 func TestFsnotifyDeleteWatchedDir(t *testing.T) {
+	ctx := context.Background()
 	watcher := newWatcher(t)
-	defer watcher.Close()
+	defer watcher.Close(ctx)
 
 	// Create directory to watch
 	testDir := tempMkdir(t)
@@ -546,7 +552,8 @@ func TestFsnotifySubDir(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 	t.Log("waiting for the event channel to become closed...")
 	select {
 	case <-done:
@@ -622,7 +629,8 @@ func TestFsnotifyRename(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 	t.Log("waiting for the event channel to become closed...")
 	select {
 	case <-done:
@@ -698,7 +706,8 @@ func TestFsnotifyRenameToCreate(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 	t.Log("waiting for the event channel to become closed...")
 	select {
 	case <-done:
@@ -786,7 +795,8 @@ func TestFsnotifyRenameToOverwrite(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 	t.Log("waiting for the event channel to become closed...")
 	select {
 	case <-done:
@@ -816,7 +826,8 @@ func TestRemovalOfWatch(t *testing.T) {
 	}
 
 	watcher := newWatcher(t)
-	defer watcher.Close()
+	ctx := context.Background()
+	defer watcher.Close(ctx)
 
 	addWatch(t, watcher, testDir)
 	if err := watcher.RemoveWatch(testDir); err != nil {
@@ -964,7 +975,8 @@ func TestFsnotifyAttrib(t *testing.T) {
 
 	// Try closing the fsnotify instance
 	t.Log("calling Close()")
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 	t.Log("waiting for the event channel to become closed...")
 	select {
 	case <-done:
@@ -978,11 +990,12 @@ func TestFsnotifyAttrib(t *testing.T) {
 
 func TestFsnotifyClose(t *testing.T) {
 	watcher := newWatcher(t)
-	watcher.Close()
+	ctx := context.Background()
+	watcher.Close(ctx)
 
 	var done int32
 	go func() {
-		watcher.Close()
+		watcher.Close(ctx)
 		atomic.StoreInt32(&done, 1)
 	}()
 

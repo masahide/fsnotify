@@ -7,6 +7,7 @@
 package fsnotify
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -111,7 +112,7 @@ type Watcher struct {
 }
 
 // NewWatcher creates and returns a new inotify instance using inotify_init(2)
-func NewWatcher() (*Watcher, error) {
+func NewWatcher(ctx context.Context) (*Watcher, error) {
 	fd, errno := syscall.InotifyInit()
 	if fd == -1 {
 		return nil, os.NewSyscallError("inotify_init", errno)
@@ -127,15 +128,15 @@ func NewWatcher() (*Watcher, error) {
 		done:          make(chan bool, 1),
 	}
 
-	go w.readEvents()
-	go w.purgeEvents()
+	go w.readEvents(ctx)
+	go w.purgeEvents(ctx)
 	return w, nil
 }
 
 // Close closes an inotify watcher instance
 // It sends a message to the reader goroutine to quit and removes all watches
 // associated with the inotify instance
-func (w *Watcher) Close() error {
+func (w *Watcher) Close(ctx context.Context) error {
 	if w.isClosed {
 		return nil
 	}
@@ -147,7 +148,10 @@ func (w *Watcher) Close() error {
 	}
 
 	// Send "quit" message to the reader goroutine
-	w.done <- true
+	select {
+	case <-ctx.Done():
+	case w.done <- true:
+	}
 
 	return nil
 }
@@ -202,7 +206,7 @@ func (w *Watcher) removeWatch(path string) error {
 
 // readEvents reads from the inotify file descriptor, converts the
 // received events into Event objects and sends them via the Event channel
-func (w *Watcher) readEvents() {
+func (w *Watcher) readEvents(ctx context.Context) {
 	var (
 		buf   [syscall.SizeofInotifyEvent * 4096]byte // Buffer for a maximum of 4096 raw events
 		n     int                                     // Number of bytes read with read()
@@ -231,11 +235,17 @@ func (w *Watcher) readEvents() {
 		}
 
 		if n < 0 {
-			w.Error <- os.NewSyscallError("read", errno)
+			select {
+			case <-ctx.Done():
+			case w.Error <- os.NewSyscallError("read", errno):
+			}
 			continue
 		}
 		if n < syscall.SizeofInotifyEvent {
-			w.Error <- errors.New("inotify: short read in readEvents()")
+			select {
+			case <-ctx.Done():
+			case w.Error <- errors.New("inotify: short read in readEvents()"):
+			}
 			continue
 		}
 
@@ -277,7 +287,10 @@ func (w *Watcher) readEvents() {
 				}
 				w.fsnmut.Unlock()
 
-				w.internalEvent <- event
+				select {
+				case <-ctx.Done():
+				case w.internalEvent <- event:
+				}
 			}
 
 			// Move to the next event in the buffer
